@@ -177,9 +177,22 @@ function updateSummary() {
 // --- Grid Render ---
 
 function applySorting(items, stock) {
-  if (currentSort === 'default') return items;
-
   var sorted = items.slice();
+
+  if (currentSort === 'default') {
+    // Default: within each tier, low stock (< 10) floats to top
+    sorted.sort(function(a, b) {
+      if (a.level !== b.level) return a.level - b.level;
+      var qtyA = stock[a.id] || 0;
+      var qtyB = stock[b.id] || 0;
+      var lowA = qtyA < 10 ? 0 : 1;
+      var lowB = qtyB < 10 ? 0 : 1;
+      if (lowA !== lowB) return lowA - lowB;
+      return qtyA - qtyB;
+    });
+    return sorted;
+  }
+
   sorted.sort(function(a, b) {
     switch (currentSort) {
       case 'tier-asc':

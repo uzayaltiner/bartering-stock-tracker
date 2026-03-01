@@ -19,7 +19,8 @@ const TRANSLATIONS = {
     sortTierDesc: 'Tier ↓',
     sortStockAsc: 'Stok ↑',
     sortStockDesc: 'Stok ↓',
-    footerRights: 'Tüm hakları saklıdır.'
+    footerRights: 'Tüm hakları saklıdır.',
+    footerCreated: 'Oluşturan'
   },
   en: {
     appTitle: 'BDO Bartering',
@@ -41,6 +42,7 @@ const TRANSLATIONS = {
     sortTierDesc: 'Tier ↓',
     sortStockAsc: 'Stock ↑',
     sortStockDesc: 'Stock ↓',
-    footerRights: 'All rights reserved.'
+    footerRights: 'All rights reserved.',
+    footerCreated: 'Created by'
   }
 };
