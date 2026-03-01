@@ -4,7 +4,7 @@ A single-page web app for tracking [Black Desert Online](https://www.naeu.playbl
 
 ## Features
 
-- **67 barter items** with local icons (T1-T5)
+- **68 barter items** with local icons (T1-T5)
 - **Dark / Light theme** toggle
 - **TR / EN** language switch
 - **Tier filtering** with multi-select (pick any combination of tiers)
