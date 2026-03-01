@@ -64,10 +64,24 @@ function updateItemCard(id, qty) {
     input.value = qty;
   }
 
-  if (qty > 0) {
-    card.classList.add('has-stock');
-  } else {
-    card.classList.remove('has-stock');
+  card.classList.toggle('has-stock', qty > 0);
+  card.classList.toggle('stock-empty', qty === 0);
+  card.classList.toggle('stock-low', qty >= 1 && qty <= 10);
+  card.classList.toggle('stock-ok', qty > 10);
+
+  // Manage warning icon
+  var existingWarn = card.querySelector('.stock-warn');
+  if (qty <= 10 && !existingWarn) {
+    var tooltip = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang])
+      ? TRANSLATIONS[currentLang].lowStockTooltip : 'Low stock!';
+    var warn = document.createElement('span');
+    warn.className = 'stock-warn';
+    warn.setAttribute('data-tooltip', tooltip);
+    warn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    var controls = card.querySelector('.stock-controls');
+    card.insertBefore(warn, controls);
+  } else if (qty > 10 && existingWarn) {
+    existingWarn.remove();
   }
 }
 
@@ -214,12 +228,26 @@ function renderGrid(animate) {
 
   emptyState.classList.add('hidden');
 
+  var tooltipText = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang])
+    ? TRANSLATIONS[currentLang].lowStockTooltip : 'Low stock!';
+
   var html = filtered.map(function(item) {
     var qty = stock[item.id] || 0;
     var hasStock = qty > 0;
+    var classes = ['item-card'];
+    if (hasStock) classes.push('has-stock');
+    if (qty === 0) classes.push('stock-empty');
+    else if (qty <= 10) classes.push('stock-low');
+    else classes.push('stock-ok');
     var primaryName = (currentLang === 'tr') ? item.name_tr : item.name_en;
 
-    return '<div class="item-card ' + (hasStock ? 'has-stock' : '') + '" data-item-id="' + item.id + '" style="--tier-color:var(--tier-' + item.level + ')">' +
+    var warnIcon = qty <= 10
+      ? '<span class="stock-warn" data-tooltip="' + escapeHtml(tooltipText) + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+        '</span>'
+      : '';
+
+    return '<div class="' + classes.join(' ') + '" data-item-id="' + item.id + '" style="--tier-color:var(--tier-' + item.level + ')">' +
       '<img src="' + escapeHtml(item.icon) + '" alt="' + escapeHtml(primaryName) + '" class="item-icon" loading="lazy" onerror="this.style.display=\'none\'">' +
       '<div class="item-info">' +
         '<div class="item-name">' +
@@ -227,6 +255,7 @@ function renderGrid(animate) {
           '<span>' + escapeHtml(primaryName) + '</span>' +
         '</div>' +
       '</div>' +
+      warnIcon +
       '<div class="stock-controls">' +
         '<button class="qty-btn minus" onclick="changeStock(\'' + item.id + '\', -1)">\u2212</button>' +
         '<input type="number" class="stock-input" min="0" value="' + qty + '" onchange="updateStock(\'' + item.id + '\', this.value)">' +

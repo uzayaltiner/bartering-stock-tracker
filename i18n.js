@@ -13,11 +13,13 @@ const TRANSLATIONS = {
     resetConfirm: 'Tüm stok verilerini sıfırlamak istediğinize emin misiniz?',
     emptyState: 'Aramanızla eşleşen item bulunamadı',
     low: 'düşük',
+    lowStockTooltip: 'Stok az!',
     sortDefault: 'Varsayılan',
     sortTierAsc: 'Tier ↑',
     sortTierDesc: 'Tier ↓',
     sortStockAsc: 'Stok ↑',
-    sortStockDesc: 'Stok ↓'
+    sortStockDesc: 'Stok ↓',
+    footerRights: 'Tüm hakları saklıdır.'
   },
   en: {
     appTitle: 'BDO Bartering',
@@ -33,10 +35,12 @@ const TRANSLATIONS = {
     resetConfirm: 'Are you sure you want to reset all stock data?',
     emptyState: 'No items match your search',
     low: 'low',
+    lowStockTooltip: 'Low stock!',
     sortDefault: 'Default',
     sortTierAsc: 'Tier ↑',
     sortTierDesc: 'Tier ↓',
     sortStockAsc: 'Stock ↑',
-    sortStockDesc: 'Stock ↓'
+    sortStockDesc: 'Stock ↓',
+    footerRights: 'All rights reserved.'
   }
 };

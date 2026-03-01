@@ -509,6 +509,100 @@ body::before {
   opacity: 0.7;
 }
 
+/* --- Stock State Colors --- */
+
+/* 0 = Red */
+.item-card.stock-empty .stock-input {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* 1-10 = Yellow */
+.item-card.stock-low .stock-input {
+  color: #eab308;
+  border-color: rgba(234, 179, 8, 0.3);
+}
+
+/* 10+ = Green */
+.item-card.stock-ok .stock-input {
+  color: #22c55e;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+[data-theme="light"] .item-card.stock-empty .stock-input {
+  color: #dc2626;
+  border-color: rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="light"] .item-card.stock-low .stock-input {
+  color: #ca8a04;
+  border-color: rgba(202, 138, 4, 0.3);
+}
+
+[data-theme="light"] .item-card.stock-ok .stock-input {
+  color: #16a34a;
+  border-color: rgba(22, 163, 74, 0.3);
+}
+
+/* --- Warning Icon (qty <= 10) --- */
+.stock-warn {
+  position: relative;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  cursor: default;
+}
+
+.stock-warn svg {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* Red triangle for empty */
+.item-card.stock-empty .stock-warn {
+  color: #ef4444;
+}
+
+/* Yellow triangle for low */
+.item-card.stock-low .stock-warn {
+  color: #eab308;
+}
+
+[data-theme="light"] .item-card.stock-empty .stock-warn {
+  color: #dc2626;
+}
+
+[data-theme="light"] .item-card.stock-low .stock-warn {
+  color: #ca8a04;
+}
+
+/* Tooltip on hover */
+.stock-warn::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.95);
+  white-space: nowrap;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 12px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.stock-warn:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
 /* --- Stock Controls --- */
 .stock-controls {
   display: flex;
@@ -571,10 +665,7 @@ body::before {
   border-color: var(--border-focus);
 }
 
-.item-card.has-stock .stock-input {
-  color: var(--accent);
-  border-color: rgba(232, 160, 51, 0.25);
-}
+/* stock-input colors handled by stock-empty / stock-low / stock-ok */
 
 /* Hide number input spinners */
 .stock-input::-webkit-outer-spin-button,
@@ -603,6 +694,18 @@ body::before {
 .empty-state p {
   color: var(--text-muted);
   font-size: 14px;
+  margin: 0;
+}
+
+/* --- Footer --- */
+.site-footer {
+  text-align: center;
+  padding: 24px 16px 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.site-footer p {
   margin: 0;
 }
 
