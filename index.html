@@ -83,22 +83,21 @@
 
           <div class="settings-sep"></div>
 
-          <!-- Export -->
-          <button id="exportBtn" class="settings-action">
+          <!-- Copy Backup Code -->
+          <button id="copyCodeBtn" class="settings-action">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
             </svg>
-            <span data-i18n="menuExport">Dışa Aktar</span>
+            <span data-i18n="menuCopyCode">Yedekle</span>
           </button>
 
-          <!-- Import -->
-          <label class="settings-action" id="importBtn">
+          <!-- Restore from Code -->
+          <button id="restoreCodeBtn" class="settings-action">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+              <polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/>
             </svg>
-            <span data-i18n="menuImport">İçe Aktar</span>
-            <input type="file" id="importFile" accept=".json" hidden>
-          </label>
+            <span data-i18n="menuRestoreCode">Yükle</span>
+          </button>
 
           <div class="settings-sep"></div>
 
@@ -198,6 +197,18 @@
   <footer class="site-footer">
     <p>&copy; 2026 Uzay Altıner</p>
   </footer>
+
+  <!-- Restore Modal -->
+  <div id="restoreModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <p class="modal-warning" data-i18n="restoreConfirm">Mevcut veriler değiştirilecek. Devam?</p>
+      <input type="text" id="restoreCodeInput" class="restore-input" placeholder="Yedek kodunu yapıştır..." data-i18n-placeholder="restorePlaceholder" autocomplete="off">
+      <div class="modal-actions">
+        <button id="restoreModalCancel" class="modal-btn modal-btn-cancel" data-i18n="modalCancel">İptal</button>
+        <button id="restoreModalSubmit" class="modal-btn modal-btn-confirm" data-i18n="restoreBtn">Yükle</button>
+      </div>
+    </div>
+  </div>
 
   <script src="assets/js/i18n.js"></script>
   <script src="assets/js/data.js"></script>

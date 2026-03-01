@@ -416,51 +416,90 @@ function closeSettingsMenu() {
   }
 }
 
-// --- Export / Import / Clear ---
+// --- Backup Code (Clipboard) ---
 
-function exportData() {
-  closeSettingsMenu();
+function encodeBackup() {
   var stock = getStock();
-  var payload = {
-    version: 1,
-    date: new Date().toISOString(),
-    stock: stock
-  };
-  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-  var url = URL.createObjectURL(blob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = 'bdo-barter-stock-' + new Date().toISOString().slice(0, 10) + '.json';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  var json = JSON.stringify(stock);
+  return 'BDO1_' + btoa(unescape(encodeURIComponent(json)));
 }
 
-function importData(file) {
-  closeSettingsMenu();
-  var lang = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : {};
-  var reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      var data = JSON.parse(e.target.result);
-      if (!data || typeof data.stock !== 'object') {
-        showToast(lang.importError || 'Invalid file format.', 'error');
-        return;
-      }
-      if (!confirm(lang.importConfirm || 'Your current data will be replaced. Do you want to continue?')) {
-        return;
-      }
-      saveStock(data.stock);
-      renderGrid(true);
-      updateSummary();
-      showToast(lang.importSuccess || 'Data imported successfully!', 'success');
-    } catch (err) {
-      showToast(lang.importError || 'Invalid file format.', 'error');
-    }
-  };
-  reader.readAsText(file);
+function decodeBackup(code) {
+  if (typeof code !== 'string' || code.indexOf('BDO1_') !== 0) return null;
+  try {
+    var json = decodeURIComponent(escape(atob(code.slice(5))));
+    var obj = JSON.parse(json);
+    if (typeof obj !== 'object' || obj === null || Array.isArray(obj)) return null;
+    return obj;
+  } catch (e) {
+    return null;
+  }
 }
+
+function copyBackupCode() {
+  var lang = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : {};
+  var code = encodeBackup();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(function() {
+      showToast(lang.backupCopied || 'Backup code copied!', 'success');
+    }).catch(function() {
+      fallbackCopy(code, lang);
+    });
+  } else {
+    fallbackCopy(code, lang);
+  }
+}
+
+function fallbackCopy(text, lang) {
+  var ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast(lang.backupCopied || 'Backup code copied!', 'success');
+  } catch (e) {
+    showToast(lang.restoreError || 'Copy failed.', 'error');
+  }
+  document.body.removeChild(ta);
+}
+
+function openRestoreModal() {
+  closeSettingsMenu();
+  var modal = document.getElementById('restoreModal');
+  var input = document.getElementById('restoreCodeInput');
+  input.value = '';
+  modal.classList.remove('hidden');
+  setTimeout(function() { input.focus(); }, 50);
+}
+
+function closeRestoreModal() {
+  document.getElementById('restoreModal').classList.add('hidden');
+}
+
+function restoreFromCode() {
+  var lang = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : {};
+  var input = document.getElementById('restoreCodeInput');
+  var code = (input.value || '').trim();
+  if (!code) {
+    showToast(lang.restoreError || 'Invalid backup code.', 'error');
+    return;
+  }
+  var stock = decodeBackup(code);
+  if (!stock) {
+    showToast(lang.restoreError || 'Invalid backup code.', 'error');
+    return;
+  }
+  saveStock(stock);
+  renderGrid(true);
+  updateSummary();
+  showToast(lang.restoreSuccess || 'Data restored!', 'success');
+  closeRestoreModal();
+}
+
+// --- Clear ---
 
 function clearAllData() {
   closeSettingsMenu();
@@ -537,16 +576,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Export / Import / Clear
-  document.getElementById('exportBtn').addEventListener('click', exportData);
-
-  document.getElementById('importFile').addEventListener('change', function(e) {
-    if (e.target.files && e.target.files[0]) {
-      importData(e.target.files[0]);
-      e.target.value = '';
-    }
+  // Backup Code (Clipboard)
+  document.getElementById('copyCodeBtn').addEventListener('click', function() {
+    copyBackupCode();
+    closeSettingsMenu();
   });
 
+  document.getElementById('restoreCodeBtn').addEventListener('click', function() {
+    openRestoreModal();
+  });
+
+  document.getElementById('restoreModalSubmit').addEventListener('click', function() {
+    restoreFromCode();
+  });
+
+  document.getElementById('restoreModalCancel').addEventListener('click', function() {
+    closeRestoreModal();
+  });
+
+  document.getElementById('restoreModal').addEventListener('click', function(e) {
+    if (e.target === this) closeRestoreModal();
+  });
+
+  document.getElementById('restoreCodeInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') restoreFromCode();
+    if (e.key === 'Escape') closeRestoreModal();
+  });
+
+  // Clear
   document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
 
   updateLangPills();
