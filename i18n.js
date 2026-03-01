@@ -1,0 +1,42 @@
+const TRANSLATIONS = {
+  tr: {
+    appTitle: 'BDO Bartering',
+    totalStock: 'Toplam Stok',
+    level1: 'T1',
+    level2: 'T2',
+    level3: 'T3',
+    level4: 'T4',
+    level5: 'T5',
+    filterAll: 'Hepsi',
+    searchPlaceholder: 'Ara...',
+    clearFilter: 'Temizle',
+    resetConfirm: 'Tüm stok verilerini sıfırlamak istediğinize emin misiniz?',
+    emptyState: 'Aramanızla eşleşen item bulunamadı',
+    low: 'düşük',
+    sortDefault: 'Varsayılan',
+    sortTierAsc: 'Tier ↑',
+    sortTierDesc: 'Tier ↓',
+    sortStockAsc: 'Stok ↑',
+    sortStockDesc: 'Stok ↓'
+  },
+  en: {
+    appTitle: 'BDO Bartering',
+    totalStock: 'Total Stock',
+    level1: 'T1',
+    level2: 'T2',
+    level3: 'T3',
+    level4: 'T4',
+    level5: 'T5',
+    filterAll: 'All',
+    searchPlaceholder: 'Search...',
+    clearFilter: 'Clear',
+    resetConfirm: 'Are you sure you want to reset all stock data?',
+    emptyState: 'No items match your search',
+    low: 'low',
+    sortDefault: 'Default',
+    sortTierAsc: 'Tier ↑',
+    sortTierDesc: 'Tier ↓',
+    sortStockAsc: 'Stock ↑',
+    sortStockDesc: 'Stock ↓'
+  }
+};

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" data-lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BDO Bartering Stock Tracking Tool</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Sticky Navbar -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <circle cx="12" cy="12" r="2"/>
+        <line x1="12" y1="3" x2="12" y2="7"/>
+        <line x1="12" y1="17" x2="12" y2="21"/>
+        <line x1="3" y1="12" x2="7" y2="12"/>
+        <line x1="17" y1="12" x2="21" y2="12"/>
+        <line x1="5.6" y1="5.6" x2="8.5" y2="8.5"/>
+        <line x1="15.5" y1="15.5" x2="18.4" y2="18.4"/>
+        <line x1="5.6" y1="18.4" x2="8.5" y2="15.5"/>
+        <line x1="15.5" y1="8.5" x2="18.4" y2="5.6"/>
+      </svg>
+      <span>BDO Bartering</span>
+    </div>
+    <div class="navbar-controls">
+      <button id="themeToggle" class="btn-icon" aria-label="Toggle theme">
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"/>
+          <line x1="12" y1="1" x2="12" y2="3"/>
+          <line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/>
+          <line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button id="langToggle" class="btn-lang">TR</button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <!-- Row 1: Filters -->
+      <div class="toolbar-row">
+        <div class="level-filters">
+          <button class="level-btn level-card active" data-level="all">
+            <span class="level-label" data-i18n="filterAll">All</span>
+          </button>
+          <button class="level-btn level-card" data-level="1">
+            <span class="level-dot" style="background:var(--tier-1)"></span>
+            <span class="level-label">T1</span>
+            <span class="level-count" id="level1Count">0</span>
+          </button>
+          <button class="level-btn level-card" data-level="2">
+            <span class="level-dot" style="background:var(--tier-2)"></span>
+            <span class="level-label">T2</span>
+            <span class="level-count" id="level2Count">0</span>
+          </button>
+          <button class="level-btn level-card" data-level="3">
+            <span class="level-dot" style="background:var(--tier-3)"></span>
+            <span class="level-label">T3</span>
+            <span class="level-count" id="level3Count">0</span>
+          </button>
+          <button class="level-btn level-card" data-level="4">
+            <span class="level-dot" style="background:var(--tier-4)"></span>
+            <span class="level-label">T4</span>
+            <span class="level-count" id="level4Count">0</span>
+          </button>
+          <button class="level-btn level-card" data-level="5">
+            <span class="level-dot" style="background:var(--tier-5)"></span>
+            <span class="level-label">T5</span>
+            <span class="level-count" id="level5Count">0</span>
+          </button>
+        </div>
+        <div class="toolbar-right">
+          <div class="search-wrapper">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+            <input type="text" id="search" placeholder="Ara..." data-i18n-placeholder="searchPlaceholder">
+          </div>
+          <div class="sort-dropdown">
+            <button id="sortBtn" class="btn-sort">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"/>
+                <line x1="4" y1="12" x2="14" y2="12"/>
+                <line x1="4" y1="18" x2="8" y2="18"/>
+              </svg>
+            </button>
+            <div id="sortMenu" class="sort-menu hidden">
+              <button class="sort-option" data-sort="default" data-i18n="sortDefault">Varsayilan</button>
+              <button class="sort-option" data-sort="tier-asc" data-i18n="sortTierAsc">Tier ↑</button>
+              <button class="sort-option" data-sort="tier-desc" data-i18n="sortTierDesc">Tier ↓</button>
+              <button class="sort-option" data-sort="stock-asc" data-i18n="sortStockAsc">Stok ↑</button>
+              <button class="sort-option" data-sort="stock-desc" data-i18n="sortStockDesc">Stok ↓</button>
+            </div>
+          </div>
+          <button id="clearFilter" class="btn-clear hidden" data-i18n="clearFilter">Temizle</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Item Grid -->
+    <div id="itemGrid" class="item-grid"></div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state hidden">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+      <p data-i18n="emptyState">Aramanızla eşleşen item bulunamadı</p>
+    </div>
+
+  </main>
+
+  <script src="i18n.js"></script>
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
