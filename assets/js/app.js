@@ -52,6 +52,17 @@ function changeStock(id, delta) {
   setItemStock(id, newQty);
   updateItemCard(id, newQty);
   updateSummary();
+
+  // Flash animation on stock change
+  var card = document.querySelector('[data-item-id="' + id + '"]');
+  if (card) {
+    var input = card.querySelector('.stock-input');
+    if (input) {
+      input.classList.remove('flash');
+      void input.offsetWidth;
+      input.classList.add('flash');
+    }
+  }
 }
 
 // Update a single item card without re-rendering the entire grid
@@ -69,7 +80,7 @@ function updateItemCard(id, qty) {
   card.classList.toggle('stock-low', qty >= 1 && qty <= 10);
   card.classList.toggle('stock-ok', qty > 10);
 
-  // Manage warning icon
+  // Manage warning icon with fade animation
   var existingWarn = card.querySelector('.stock-warn');
   if (qty <= 10 && !existingWarn) {
     var tooltip = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang])
@@ -78,10 +89,13 @@ function updateItemCard(id, qty) {
     warn.className = 'stock-warn';
     warn.setAttribute('data-tooltip', tooltip);
     warn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>';
+    warn.style.opacity = '0';
     var controls = card.querySelector('.stock-controls');
     card.insertBefore(warn, controls);
+    requestAnimationFrame(function() { warn.style.opacity = '1'; });
   } else if (qty > 10 && existingWarn) {
-    existingWarn.remove();
+    existingWarn.style.opacity = '0';
+    setTimeout(function() { if (existingWarn.parentNode) existingWarn.remove(); }, 200);
   }
 }
 
@@ -89,9 +103,21 @@ function updateItemCard(id, qty) {
 
 var activeLevels = new Set();
 var searchQuery = '';
-var currentSort = 'default';
+var searchTimeout = null;
+var currentSort = localStorage.getItem('bdo-sort') || 'default';
 var currentTheme = localStorage.getItem('bdo-theme') || 'dark';
 var currentLang = localStorage.getItem('bdo-lang') || 'tr';
+
+// --- UI Helpers ---
+
+function closeWithFade(el, callback) {
+  el.classList.add('closing');
+  setTimeout(function() {
+    el.classList.add('hidden');
+    el.classList.remove('closing');
+    if (callback) callback();
+  }, 150);
+}
 
 // --- Theme ---
 
@@ -149,11 +175,6 @@ function applyLanguage(lang) {
   }
 
   applyTranslations();
-}
-
-function toggleLanguage() {
-  applyLanguage(currentLang === 'tr' ? 'en' : 'tr');
-  renderGrid(true);
 }
 
 // --- Summary ---
@@ -325,6 +346,8 @@ function clearAllFilters() {
   activeLevels.clear();
   searchQuery = '';
   currentSort = 'default';
+  localStorage.setItem('bdo-sort', 'default');
+  clearTimeout(searchTimeout);
   var searchInput = document.getElementById('search');
   if (searchInput) {
     searchInput.value = '';
@@ -346,21 +369,139 @@ function clearAllFilters() {
 
 function toggleSortMenu() {
   var menu = document.getElementById('sortMenu');
-  menu.classList.toggle('hidden');
+  if (menu.classList.contains('hidden')) {
+    menu.classList.remove('closing');
+    menu.classList.remove('hidden');
+  } else if (!menu.classList.contains('closing')) {
+    closeWithFade(menu);
+  }
 }
 
 function setSort(sortType) {
   currentSort = sortType;
+  localStorage.setItem('bdo-sort', sortType);
   document.querySelectorAll('.sort-option').forEach(function(o) {
     o.classList.toggle('active', o.dataset.sort === sortType);
   });
   var sortBtn = document.getElementById('sortBtn');
   sortBtn.classList.toggle('active', sortType !== 'default');
-  document.getElementById('sortMenu').classList.add('hidden');
+  closeWithFade(document.getElementById('sortMenu'));
 
   var clearFilterBtn = document.getElementById('clearFilter');
   clearFilterBtn.classList.toggle('hidden', activeLevels.size === 0 && !searchQuery && currentSort === 'default');
   renderGrid(true);
+}
+
+// --- Settings Menu ---
+
+function toggleSettingsMenu() {
+  var menu = document.getElementById('settingsMenu');
+  var btn = document.getElementById('settingsBtn');
+  if (menu.classList.contains('hidden')) {
+    menu.classList.remove('closing');
+    menu.classList.remove('hidden');
+    btn.classList.add('active');
+  } else if (!menu.classList.contains('closing')) {
+    btn.classList.remove('active');
+    closeWithFade(menu);
+  }
+}
+
+function closeSettingsMenu() {
+  var menu = document.getElementById('settingsMenu');
+  var btn = document.getElementById('settingsBtn');
+  if (menu && !menu.classList.contains('hidden') && !menu.classList.contains('closing')) {
+    if (btn) btn.classList.remove('active');
+    closeWithFade(menu);
+  }
+}
+
+// --- Export / Import / Clear ---
+
+function exportData() {
+  closeSettingsMenu();
+  var stock = getStock();
+  var payload = {
+    version: 1,
+    date: new Date().toISOString(),
+    stock: stock
+  };
+  var blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'bdo-barter-stock-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importData(file) {
+  closeSettingsMenu();
+  var lang = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : {};
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      var data = JSON.parse(e.target.result);
+      if (!data || typeof data.stock !== 'object') {
+        showToast(lang.importError || 'Invalid file format.', 'error');
+        return;
+      }
+      if (!confirm(lang.importConfirm || 'Your current data will be replaced. Do you want to continue?')) {
+        return;
+      }
+      saveStock(data.stock);
+      renderGrid(true);
+      updateSummary();
+      showToast(lang.importSuccess || 'Data imported successfully!', 'success');
+    } catch (err) {
+      showToast(lang.importError || 'Invalid file format.', 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearAllData() {
+  closeSettingsMenu();
+  var lang = (typeof TRANSLATIONS !== 'undefined' && TRANSLATIONS[currentLang]) ? TRANSLATIONS[currentLang] : {};
+  if (!confirm(lang.clearConfirm || 'All stock data will be deleted. Are you sure?')) {
+    return;
+  }
+  saveStock({});
+  renderGrid(true);
+  updateSummary();
+  showToast(lang.clearSuccess || 'All data cleared.', 'success');
+}
+
+function showToast(message, type) {
+  var existing = document.querySelector('.toast');
+  if (existing) existing.remove();
+
+  var toast = document.createElement('div');
+  toast.className = 'toast toast-' + (type || 'info');
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  requestAnimationFrame(function() {
+    toast.classList.add('toast-show');
+  });
+
+  setTimeout(function() {
+    toast.classList.remove('toast-show');
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3500);
+}
+
+function updateLangPills() {
+  var pills = document.querySelectorAll('.lang-pill');
+  var bg = document.getElementById('langPillBg');
+  pills.forEach(function(p) {
+    p.classList.toggle('active', p.dataset.lang === currentLang);
+  });
+  if (bg) {
+    bg.classList.toggle('right', currentLang === 'en');
+  }
 }
 
 // --- Initialization ---
@@ -369,14 +510,56 @@ document.addEventListener('DOMContentLoaded', function() {
   applyTheme(currentTheme);
   applyLanguage(currentLang);
 
-  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
-  document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+  // Settings menu
+  document.getElementById('settingsBtn').addEventListener('click', function(e) {
+    e.stopPropagation();
+    toggleSettingsMenu();
+  });
+
+  document.querySelector('.settings-dropdown').addEventListener('click', function(e) {
+    e.stopPropagation();
+  });
+
+  // Theme toggle switch
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    toggleTheme();
+  });
+
+  // Language pills
+  document.querySelectorAll('.lang-pill').forEach(function(pill) {
+    pill.addEventListener('click', function() {
+      var lang = pill.dataset.lang;
+      if (lang !== currentLang) {
+        applyLanguage(lang);
+        updateLangPills();
+        renderGrid(false);
+      }
+    });
+  });
+
+  // Export / Import / Clear
+  document.getElementById('exportBtn').addEventListener('click', exportData);
+
+  document.getElementById('importFile').addEventListener('change', function(e) {
+    if (e.target.files && e.target.files[0]) {
+      importData(e.target.files[0]);
+      e.target.value = '';
+    }
+  });
+
+  document.getElementById('clearAllBtn').addEventListener('click', clearAllData);
+
+  updateLangPills();
 
   document.getElementById('search').addEventListener('input', function(e) {
-    searchQuery = e.target.value;
-    var clearFilterBtn = document.getElementById('clearFilter');
-    clearFilterBtn.classList.toggle('hidden', activeLevels.size === 0 && !searchQuery && currentSort === 'default');
-    renderGrid(false);
+    var value = e.target.value;
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(function() {
+      searchQuery = value;
+      var clearFilterBtn = document.getElementById('clearFilter');
+      clearFilterBtn.classList.toggle('hidden', activeLevels.size === 0 && !searchQuery && currentSort === 'default');
+      renderGrid(false);
+    }, 200);
   });
 
   document.getElementById('clearFilter').addEventListener('click', clearAllFilters);
@@ -404,23 +587,34 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Close sort menu on outside click
+  // Close menus on outside click
   document.addEventListener('click', function() {
-    var menu = document.getElementById('sortMenu');
-    if (menu && !menu.classList.contains('hidden')) {
-      menu.classList.add('hidden');
+    var sortMenu = document.getElementById('sortMenu');
+    if (sortMenu && !sortMenu.classList.contains('hidden') && !sortMenu.classList.contains('closing')) {
+      closeWithFade(sortMenu);
     }
+    closeSettingsMenu();
   });
 
   document.querySelector('.sort-dropdown').addEventListener('click', function(e) {
     e.stopPropagation();
   });
 
-  // Set default sort option as active
-  var defaultOpt = document.querySelector('[data-sort="default"]');
-  if (defaultOpt) defaultOpt.classList.add('active');
+  // Restore sort state from localStorage
+  document.querySelectorAll('.sort-option').forEach(function(o) {
+    o.classList.toggle('active', o.dataset.sort === currentSort);
+  });
+  var sortBtn = document.getElementById('sortBtn');
+  if (sortBtn) {
+    sortBtn.classList.toggle('active', currentSort !== 'default');
+  }
+  var initClearBtn = document.getElementById('clearFilter');
+  if (initClearBtn) initClearBtn.classList.toggle('hidden', activeLevels.size === 0 && !searchQuery && currentSort === 'default');
 
   applyTranslations();
   renderGrid(true);
   updateSummary();
+
+  // Remove FOUC guard after init
+  document.documentElement.classList.remove('app-loading');
 });

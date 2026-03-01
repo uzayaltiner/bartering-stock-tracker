@@ -20,7 +20,17 @@ const TRANSLATIONS = {
     sortStockAsc: 'Stok ↑',
     sortStockDesc: 'Stok ↓',
     footerRights: 'Tüm hakları saklıdır.',
-    footerCreated: 'Oluşturan'
+    footerCreated: 'Oluşturan',
+    menuTheme: 'Tema',
+    menuLang: 'Dil',
+    menuExport: 'Dışa Aktar',
+    menuImport: 'İçe Aktar',
+    menuClear: 'Tümünü Sil',
+    importSuccess: 'Veriler başarıyla yüklendi!',
+    importError: 'Geçersiz dosya formatı.',
+    importConfirm: 'Mevcut verileriniz değiştirilecek. Devam etmek istiyor musunuz?',
+    clearConfirm: 'Tüm stok verileri silinecek. Emin misiniz?',
+    clearSuccess: 'Tüm veriler silindi.'
   },
   en: {
     appTitle: 'BDO Bartering',
@@ -43,6 +53,16 @@ const TRANSLATIONS = {
     sortStockAsc: 'Stock ↑',
     sortStockDesc: 'Stock ↓',
     footerRights: 'All rights reserved.',
-    footerCreated: 'Created by'
+    footerCreated: 'Created by',
+    menuTheme: 'Theme',
+    menuLang: 'Language',
+    menuExport: 'Export',
+    menuImport: 'Import',
+    menuClear: 'Clear All',
+    importSuccess: 'Data imported successfully!',
+    importError: 'Invalid file format.',
+    importConfirm: 'Your current data will be replaced. Do you want to continue?',
+    clearConfirm: 'All stock data will be deleted. Are you sure?',
+    clearSuccess: 'All data cleared.'
   }
 };
